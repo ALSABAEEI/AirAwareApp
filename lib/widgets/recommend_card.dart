@@ -22,18 +22,18 @@ class RecommendCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Today's Exercise\nRecommendations",
+            "Explore Your Activities",
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.2,
-            ),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
           ),
           const SizedBox(height: 12),
           Text(
-            'Based on current air quality conditions',
+            "Find the perfect workout for today's conditions.",
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.black.withOpacity(0.6),
-            ),
+                  color: Colors.black.withOpacity(0.6),
+                ),
           ),
         ],
       ),

@@ -6,16 +6,12 @@ class ActivityCard extends StatefulWidget {
     required this.icon,
     required this.iconBackground,
     required this.title,
-    required this.percent,
-    required this.barColor,
     this.onTap,
   });
 
   final IconData icon;
   final Color iconBackground;
   final String title;
-  final double percent; // 0.0 - 1.0
-  final Color barColor;
   final VoidCallback? onTap;
 
   @override
@@ -43,7 +39,6 @@ class _ActivityCardState extends State<ActivityCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final percentText = '${(widget.percent * 100).round()}%';
     final borderRadius = BorderRadius.circular(22);
     final baseShadow = BoxShadow(
       color: Colors.black.withOpacity(0.06),
@@ -79,83 +74,35 @@ class _ActivityCardState extends State<ActivityCard>
                     ),
                 ],
               ),
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundColor: widget.iconBackground.withOpacity(0.15),
-                    child: Icon(
-                      widget.icon,
-                      color: widget.iconBackground,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      Text(
-                        percentText,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.black.withOpacity(0.7),
-                          fontWeight: FontWeight.w600,
-                        ),
+              padding: const EdgeInsets.all(18),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: widget.iconBackground.withOpacity(0.15),
+                      child: Icon(
+                        widget.icon,
+                        color: widget.iconBackground,
+                        size: 32,
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _ProgressBar(
-                          value: widget.percent,
-                          color: widget.barColor,
-                        ),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      widget.title,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             );
           },
         ),
       ),
-    );
-  }
-}
-
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({required this.value, required this.color});
-  final double value;
-  final Color color;
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final filledWidth = width * value.clamp(0, 1);
-        return Container(
-          height: 8,
-          decoration: BoxDecoration(
-            color: const Color(0xFFEDEDED),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              width: filledWidth,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }

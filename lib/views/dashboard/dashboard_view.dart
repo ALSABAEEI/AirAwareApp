@@ -1,54 +1,102 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../detail/activity_detail_view.dart';
 import '../../view_models/dashboard_view_model.dart';
 import '../../widgets/header.dart';
 import '../../widgets/recommend_card.dart';
 import '../../widgets/activity_card.dart';
 
-class DashboardView extends StatelessWidget {
+class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
+
+  @override
+  State<DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<DashboardView>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _bgController = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 8),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _bgController.dispose();
+    super.dispose();
+  }
+
+  List<Color> _baseGradientForLevel(int level) {
+    switch (level) {
+      case 2:
+        return const [Color(0xFFF87671), Color(0xFFFFFFFF)]; // Salmon Red
+      case 1:
+        return const [Color(0xFFFFAA4C), Color(0xFFFFFFFF)]; // Amber
+      case 0:
+      default:
+        return const [Color(0xFF43C6AC), Color(0xFFFFFFFF)]; // Light Teal
+    }
+  }
+
+  List<Color> _secondaryGradientForLevel(int level) {
+    switch (level) {
+      case 2:
+        return const [Color(0xFFFFD1D1), Color(0xFFFFFFFF)]; // Light Pinkish Red
+      case 1:
+        return const [Color(0xFFFFE5B4), Color(0xFFFFFFFF)]; // Light Peach
+      case 0:
+      default:
+        return const [Color(0xFFB8F2E6), Color(0xFFFFFFFF)]; // Pale Teal/Mint
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<DashboardViewModel>();
     final level = vm.airQualityLevel;
-    List<Color> base;
-    switch (level) {
-      case 2:
-        base = const [Color(0xFFFFEDEA), Color(0xFFFFFFFF)];
-        break;
-      case 1:
-        base = const [Color(0xFFFFF3E6), Color(0xFFFFFFFF)];
-        break;
-      default:
-        base = const [Color(0xFFEAF6FF), Color(0xFFFFFFFF)];
-    }
+    final base = _baseGradientForLevel(level);
+    final alt = _secondaryGradientForLevel(level);
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            // simple static choice based on VM; animated version can be added
-            colors: base,
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Header(),
-                SizedBox(height: 20),
-                RecommendCard(),
-                SizedBox(height: 20),
-                _Grid(),
-              ],
+      body: AnimatedBuilder(
+        animation: _bgController,
+        builder: (context, _) {
+          final t = Curves.easeInOut.transform(_bgController.value);
+          final c0 = Color.lerp(base[0], alt[0], t)!;
+          final c1 = Color.lerp(base[1], alt[1], t)!;
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [c0, c1],
+              ),
             ),
-          ),
-        ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: const [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                      child: Header(),
+                    ),
+                    SizedBox(height: 20),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: RecommendCard(),
+                    ),
+                    SizedBox(height: 20),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      child: _Grid(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -56,6 +104,17 @@ class DashboardView extends StatelessWidget {
 
 class _Grid extends StatelessWidget {
   const _Grid();
+
+  void _navigateToDetail(BuildContext context, String title, IconData icon, Color color) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ActivityDetailView(
+        activityTitle: title,
+        activityIcon: icon,
+        iconBackground: color,
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return GridView(
@@ -65,36 +124,44 @@ class _Grid extends StatelessWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 0.92,
+        childAspectRatio: 1,
       ),
-      children: const [
+      children: [
         ActivityCard(
           icon: Icons.directions_run_rounded,
-          iconBackground: Color(0xFF2BB0ED),
+          iconBackground: const Color(0xFF50C878), // Emerald Green
           title: 'Jogging',
-          percent: 0.85,
-          barColor: Color(0xFF2BB673),
+          onTap: () => _navigateToDetail(context, 'Jogging', Icons.directions_run_rounded, const Color(0xFF50C878)),
         ),
         ActivityCard(
           icon: Icons.pool_rounded,
-          iconBackground: Color(0xFF2D7FF9),
+          iconBackground: const Color(0xFF4682B4), // Steel Blue
           title: 'Swimming',
-          percent: 0.92,
-          barColor: Color(0xFF1AA27A),
+          onTap: () => _navigateToDetail(context, 'Swimming', Icons.pool_rounded, const Color(0xFF4682B4)),
         ),
         ActivityCard(
           icon: Icons.pedal_bike_rounded,
-          iconBackground: Color(0xFFFF8C1A),
-          title: 'Cycling',
-          percent: 0.55,
-          barColor: Color(0xFFFF9D1E),
+          iconBackground: const Color(0xFFFF7F50), // Coral
+          title: 'Bike',
+          onTap: () => _navigateToDetail(context, 'Bike', Icons.pedal_bike_rounded, const Color(0xFFFF7F50)),
         ),
         ActivityCard(
           icon: Icons.sports_soccer_rounded,
-          iconBackground: Color(0xFFE83C3C),
+          iconBackground: const Color(0xFF6A5ACD), // Slate Blue
           title: 'Football',
-          percent: 0.25,
-          barColor: Color(0xFFFF6275),
+          onTap: () => _navigateToDetail(context, 'Football', Icons.sports_soccer_rounded, const Color(0xFF6A5ACD)),
+        ),
+        ActivityCard(
+          icon: Icons.directions_walk_rounded,
+          iconBackground: const Color(0xFF8A9A5B), // Sage Green
+          title: 'Walking',
+          onTap: () => _navigateToDetail(context, 'Walking', Icons.directions_walk_rounded, const Color(0xFF8A9A5B)),
+        ),
+        ActivityCard(
+          icon: Icons.hiking_rounded,
+          iconBackground: const Color(0xFF967969), // Woodsy Brown
+          title: 'Hiking',
+          onTap: () => _navigateToDetail(context, 'Hiking', Icons.hiking_rounded, const Color(0xFF967969)),
         ),
       ],
     );

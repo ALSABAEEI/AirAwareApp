@@ -34,24 +34,24 @@ class _DashboardScreenState extends State<DashboardScreen>
   List<Color> _baseGradientForLevel(int level) {
     switch (level) {
       case 2:
-        return const [Color(0xFFFFEDEA), Color(0xFFFFFFFF)]; // soft red tint
+        return const [Color(0xFF8B0000), Color(0xFFFFFFFF)]; // soft red tint
       case 1:
-        return const [Color(0xFFFFF3E6), Color(0xFFFFFFFF)]; // soft orange tint
+        return const [Color(0xFFFFA500), Color(0xFFFFFFFF)]; // soft orange tint
       case 0:
       default:
-        return const [Color(0xFFEAF6FF), Color(0xFFFFFFFF)]; // soft blue/clear
+        return const [Color(0xFF00008B), Color(0xFFFFFFFF)]; // soft blue/clear
     }
   }
 
   List<Color> _secondaryGradientForLevel(int level) {
     switch (level) {
       case 2:
-        return const [Color(0xFFFFE2DE), Color(0xFFFFFFFF)];
+        return const [Color(0xFFDC143C), Color(0xFFFFFFFF)];
       case 1:
-        return const [Color(0xFFFFE9D6), Color(0xFFFFFFFF)];
+        return const [Color(0xFFFFD700), Color(0xFFFFFFFF)];
       case 0:
       default:
-        return const [Color(0xFFE3F3FF), Color(0xFFFFFFFF)];
+        return const [Color(0xFFADD8E6), Color(0xFFFFFFFF)];
     }
   }
 
@@ -106,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ActivityCard(
                           icon: Icons.pool_rounded,
                           iconBackground: Color(0xFF2D7FF9),
-                          title: 'Swimming',
+                          title: 'aming',
                           percent: 0.92,
                           barColor: Color(0xFF1AA27A),
                         ),
