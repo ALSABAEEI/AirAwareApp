@@ -1,8 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- HMS Location permissions -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <application
         android:label="airawareapp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- HMS App ID from agconnect-services.json -->
+        <meta-data
+            android:name="com.huawei.hms.client.appid"
+            android:value="appid=115690013" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
