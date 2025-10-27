@@ -22,13 +22,20 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
 
   Future<void> _getWeather() async {
     try {
-      const lat = 3.139; // Kuala Lumpur
-      const lon = 101.6869;
-      final data = await apiService.fetchWeather(lat, lon);
-      setState(() {
-        weatherData = data;
-        loading = false;
-      });
+      // CHANGED: Use current location instead of hardcoded coordinates
+      final data = await apiService.fetchWeatherForCurrentLocation();
+      
+      if (data != null) {
+        setState(() {
+          weatherData = data;
+          loading = false;
+        });
+      } else {
+        setState(() {
+          error = 'Could not get weather for current location';
+          loading = false;
+        });
+      }
     } catch (e) {
       setState(() {
         error = e.toString();
@@ -49,6 +56,15 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
                 : ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
+                      // ADD: Location information section
+                      if (weatherData!['city_name'] != null)
+                        _info('�� Location', weatherData!['city_name']),
+                      if (weatherData!['latitude'] != null && weatherData!['longitude'] != null)
+                        _info('��️ Coordinates', '${weatherData!['latitude']?.toStringAsFixed(4)}, ${weatherData!['longitude']?.toStringAsFixed(4)}'),
+                      if (weatherData!['location_source'] != null)
+                        _info('📡 Source', weatherData!['location_source']),
+                      const Divider(),
+                      // Existing weather data
                       _info('🌡 Temperature', '${weatherData!['temperature']} °C'),
                       _info('☀ UV Index', '${weatherData!['uv_index']}'),
                       _info('💧 Humidity', '${weatherData!['humidity']} %'),
