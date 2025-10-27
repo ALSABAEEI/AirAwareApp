@@ -8,6 +8,7 @@ class DashboardViewModel extends ChangeNotifier {
   double? lastLatitude;
   double? lastLongitude;
   String? cityName;
+  String locationSource = 'Unknown'; // Track the source
 
   void setAirQualityLevel(int level) {
     final clamped = level.clamp(0, 2);
@@ -17,15 +18,38 @@ class DashboardViewModel extends ChangeNotifier {
   }
 
   Future<void> refreshWithCurrentLocation(LocationService svc) async {
+    print('🚀 Starting refreshWithCurrentLocation...');
+    
     final hasPerm = await svc.requestPermission();
-    if (!hasPerm) return;
+    print('🔐 Permission result: $hasPerm');
+    
+    if (!hasPerm) {
+      print('❌ No location permission, cannot proceed');
+      notifyListeners();
+      return;
+    }
+    
+    print('🔄 Getting location...');
     final loc = await svc.getLastLocation();
+    
     if (loc != null) {
-      lastLatitude = loc.latitude;
-      lastLongitude = loc.longitude;
-      cityName = await svc.getCityName(loc.latitude!, loc.longitude!);
+      final lat = loc['latitude']!;
+      final lon = loc['longitude']!;
+      print('✅ Got location: $lat, $lon');
+      
+      lastLatitude = lat;
+      lastLongitude = lon;
+      locationSource = svc.lastLocationSource; // Capture the source
+      
+      print('🌍 Getting city name...');
+      cityName = await svc.getCityName(lat, lon);
+      print('🏙️ City name: $cityName');
+      
       notifyListeners();
       // TODO: fetch AQI with lat/lon and call setAirQualityLevel(...)
+    } else {
+      print('❌ Failed to get location');
+      notifyListeners();
     }
   }
 

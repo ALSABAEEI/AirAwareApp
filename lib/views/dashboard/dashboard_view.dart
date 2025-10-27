@@ -99,35 +99,6 @@ class _DashboardViewState extends State<DashboardView>
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: RecommendCard(),
                     ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Row(
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () => context
-                                .read<DashboardViewModel>()
-                                .refreshWithCurrentLocation(LocationService()),
-                            icon: const Icon(Icons.my_location),
-                            label: const Text('Use my location'),
-                          ),
-                          const SizedBox(width: 12),
-                          if (vm.cityName != null)
-                            Text(
-                              vm.cityName!,
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            )
-                          else if (vm.lastLatitude != null)
-                            Text(
-                              '(${vm.lastLatitude!.toStringAsFixed(4)}, ${vm.lastLongitude!.toStringAsFixed(4)})',
-                              style: const TextStyle(color: Colors.black54),
-                            ),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 20),
                     const Padding(
                       padding: EdgeInsets.fromLTRB(20, 0, 20, 24),
