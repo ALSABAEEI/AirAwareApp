@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../views/notifications/notifications_view.dart';
 import '../view_models/dashboard_view_model.dart';
@@ -62,12 +64,6 @@ class Header extends StatelessWidget {
                     ),
                   );
                 },
-              ),
-              const SizedBox(width: 8),
-              const _IconChip(
-                icon: Icons.place_outlined,
-                color: Color(0xFF6B5CF6),
-                tooltip: 'Location',
               ),
             ],
           ),
@@ -175,8 +171,151 @@ class _IconChipState extends State<_IconChip>
   }
 }
 
-void _showLocationDialog(BuildContext context) {
+void _showLocationDialog(BuildContext context) async {
   final vm = context.read<DashboardViewModel>();
+  
+  // Check if location services are enabled
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  
+  // Check if location permission is granted
+  PermissionStatus permissionStatus = await Permission.location.status;
+  
+  // If location is disabled or permission not granted, handle it
+  if (!serviceEnabled || !permissionStatus.isGranted) {
+    if (!context.mounted) return;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(
+              Icons.location_off,
+              color: Colors.orange.shade700,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            const Text('Location Required'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!serviceEnabled)
+              const Text(
+                'Location services are turned off. Please enable location to use this feature.',
+                style: TextStyle(fontSize: 15),
+              )
+            else if (permissionStatus.isPermanentlyDenied)
+              const Text(
+                'Location permission was permanently denied. Please enable it manually in app settings.',
+                style: TextStyle(fontSize: 15),
+              )
+            else
+              const Text(
+                'Location permission is required to detect your current location and provide accurate air quality information.',
+                style: TextStyle(fontSize: 15),
+              ),
+            const SizedBox(height: 16),
+            if (!permissionStatus.isPermanentlyDenied)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '📍 You will see options:',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(height: 8),
+                    Text('• Allow only this time'),
+                    Text('• Allow while using the app'),
+                    Text('• Don\'t allow'),
+                  ],
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '⚙️ Steps to enable:',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(height: 8),
+                    Text('1. Open app settings'),
+                    Text('2. Tap "Permissions"'),
+                    Text('3. Tap "Location"'),
+                    Text('4. Select your preferred option'),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async {
+              // Close dialog first to allow native dialogs to show
+              Navigator.pop(dialogContext);
+              
+              if (!serviceEnabled) {
+                // Open location settings
+                await Geolocator.openLocationSettings();
+                return;
+              }
+              
+              if (permissionStatus.isPermanentlyDenied) {
+                // Open app settings for permanently denied permission
+                await openAppSettings();
+                return;
+              }
+              
+              // Request location permission - this will show Android's native dialog
+              final status = await Permission.location.request();
+              
+              if (status.isGranted && context.mounted) {
+                // Refresh location
+                final locationService = LocationService();
+                context.read<DashboardViewModel>()
+                  .refreshWithCurrentLocation(locationService);
+              }
+            },
+            icon: const Icon(Icons.settings),
+            label: Text(
+              !serviceEnabled 
+                ? 'Enable Location' 
+                : permissionStatus.isPermanentlyDenied
+                  ? 'Open Settings'
+                  : 'Grant Permission'
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+    return;
+  }
+  
+  // Location is enabled and permission granted, show location info
   final hasLocation = vm.lastLatitude != null;
 
   showDialog(

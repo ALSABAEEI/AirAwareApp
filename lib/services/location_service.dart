@@ -62,13 +62,32 @@ class LocationService {
       return true;
     }
     
-    // Request permission
+    // Request permission - this will show Android's native dialog with options:
+    // - Allow only this time (one-time)
+    // - Allow while using the app (foreground)
+    // - Allow all the time (background) - shown if you request background permission
+    // - Don't allow
     print('📱 Requesting location permission from user...');
+    print('💡 User will see options: Only this time, While using app, Always, or Deny');
+    
+    // Request foreground location permission first
     final status = await Permission.location.request();
-    print('📋 Permission request result: $status');
+    print('📋 Location permission result: $status');
     
     if (status.isGranted) {
       print('✅ Location permission granted!');
+      
+      // Optionally request background location for better experience
+      print('📱 Requesting background location permission for continuous tracking...');
+      final backgroundStatus = await Permission.locationAlways.request();
+      print('📋 Background location result: $backgroundStatus');
+      
+      if (backgroundStatus.isGranted) {
+        print('✅ Background location permission granted!');
+      } else {
+        print('ℹ️ Background location denied - will work in foreground only');
+      }
+      
       return true;
     }
     
@@ -142,8 +161,27 @@ class LocationService {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         print('❌ Location services are disabled on the device');
-        lastLocationSource = 'Failed - Service Disabled';
-        return null;
+        print('🔔 Prompting user to enable location services...');
+        
+        // Try to open location settings
+        bool opened = await Geolocator.openLocationSettings();
+        if (opened) {
+          print('✅ Location settings opened');
+          // Wait a bit for user to enable location
+          await Future.delayed(const Duration(seconds: 2));
+          
+          // Check again
+          serviceEnabled = await Geolocator.isLocationServiceEnabled();
+          if (!serviceEnabled) {
+            print('❌ Location services still disabled');
+            lastLocationSource = 'Failed - Service Disabled';
+            return null;
+          }
+        } else {
+          print('⚠️ Could not open location settings');
+          lastLocationSource = 'Failed - Service Disabled';
+          return null;
+        }
       }
       
       final position = await Geolocator.getCurrentPosition(
