@@ -6,6 +6,7 @@ import '../../view_models/dashboard_view_model.dart';
 import '../../widgets/header.dart';
 import '../../widgets/recommend_card.dart';
 import '../../widgets/activity_card.dart';
+import '../../screens/weather_test_screen.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -110,6 +111,18 @@ class _DashboardViewState extends State<DashboardView>
             ),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const WeatherTestScreen(),
+            ),
+          );
+        },
+        icon: const Icon(Icons.cloud),
+        label: const Text('Weather Test'),
+        backgroundColor: Colors.blue.shade600,
       ),
     );
   }
