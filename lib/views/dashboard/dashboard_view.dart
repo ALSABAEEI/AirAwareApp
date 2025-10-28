@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../detail/activity_detail_view.dart';
+import 'package:provider/provider.dart';
+import '../../view_models/activity_hourly_view_model.dart';
 import '../../services/location_service.dart';
 import '../../view_models/dashboard_view_model.dart';
 import '../../widgets/header.dart';
@@ -114,11 +115,9 @@ class _DashboardViewState extends State<DashboardView>
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const WeatherTestScreen(),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const WeatherTestScreen()));
         },
         icon: const Icon(Icons.cloud),
         label: const Text('Weather Test'),
@@ -139,10 +138,13 @@ class _Grid extends StatelessWidget {
   ) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ActivityDetailView(
-          activityTitle: title,
-          activityIcon: icon,
-          iconBackground: color,
+        builder: (_) => ChangeNotifierProvider(
+          create: (_) => ActivityHourlyViewModel(),
+          child: ActivityDetailView(
+            activityTitle: title,
+            activityIcon: icon,
+            iconBackground: color,
+          ),
         ),
       ),
     );
