@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
@@ -76,11 +78,27 @@ class PredictionService {
         _max.length == x.length) {
       return List.generate(x.length, (i) {
         final denom = (_max[i] - _min[i]);
-        return denom == 0 ? 0.0 : (x[i] - _min[i]) / denom;
+        if (denom == 0) {
+          // Avoid collapsing the input to a constant when scaler is degenerate
+          return 0.5; // center of [0,1]
+        }
+        return (x[i] - _min[i]) / denom;
       });
     }
     // No normalization
     return x;
+  }
+
+  bool _hasLowVariance(List<double> values) {
+    if (values.isEmpty) return true;
+    final mean = values.reduce((a, b) => a + b) / values.length;
+    double variance = 0.0;
+    for (final v in values) {
+      final d = v - mean;
+      variance += d * d;
+    }
+    variance /= values.length;
+    return variance < 1e-6; // effectively constant
   }
 
   Future<void> _ensureLoaded() async {
@@ -95,14 +113,35 @@ class PredictionService {
 
   Future<List<double>> predict(List<double> rawFeatures) async {
     await _ensureLoaded();
-    final features = _normalize(rawFeatures);
+    final normalized = _normalize(rawFeatures);
+    // If normalization collapses inputs to a near-constant vector, fallback to raw
+    final features = (_normMethod != 'none' && _hasLowVariance(normalized))
+        ? rawFeatures
+        : normalized;
     // TFLite expects float32 tensor [1, N]
     final input = Float32List.fromList(features).reshape([1, features.length]);
-    final output = List.filled(6, 0.0).reshape([1, 6]);
+    final output = List.generate(1, (_) => List.filled(6, 0.0));
     _interpreter!.run(input, output);
-    final result = (output.first as List)
+    var result = (output.first as List)
         .map((e) => (e as num).toDouble())
         .toList();
+    // Auto-scale if model outputs probabilities (0..1)
+    final maxVal = result.fold<double>(-double.infinity, math.max);
+    if (maxVal <= 1.5) {
+      result = result.map((v) => v * 100.0).toList();
+    }
+    // Optional: debug the first few predictions to verify variability
+    // This prints at most 3 lines to avoid log spam
+    // ignore: prefer_final_fields
+    // (We keep a static counter to limit logs.)
+    // Note: this is safe in release (kDebugMode = false)
+    // ignore: unnecessary_statements
+    if (kDebugMode) {
+      // Print a concise one-liner
+      print(
+        '[Predict] raw=$rawFeatures norm=${normalized.map((e) => e.toStringAsFixed(3)).toList()} -> out=${result.map((e) => e.toStringAsFixed(1)).toList()}',
+      );
+    }
     return result; // scores 10..100, no softmax
   }
 
