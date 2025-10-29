@@ -54,14 +54,12 @@ class ActivityHourlyViewModel extends ChangeNotifier {
 
         final out = await _predictor.predict(feats);
         if (out.length < 6) continue;
-        final map = <String, double>{
-          'Jogging': out[0].clamp(0, 100),
-          'Swimming': out[1].clamp(0, 100),
-          'Hiking': out[2].clamp(0, 100),
-          'Football': out[3].clamp(0, 100),
-          'Walking': out[4].clamp(0, 100),
-          'Cycling': out[5].clamp(0, 100),
-        };
+        // Build activity map using declared output order
+        final labels = _predictor.outputOrder;
+        final map = <String, double>{};
+        for (int i = 0; i < 6 && i < out.length && i < labels.length; i++) {
+          map[labels[i]] = out[i].clamp(0, 100);
+        }
         final item = HourSuitability(dt, map);
         if (dt.isBefore(endToday)) {
           t1.add(item);

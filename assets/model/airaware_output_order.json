@@ -1,0 +1,10 @@
+{
+  "outputs": [
+    "jogging_percent",
+    "swimming_percent",
+    "hiking_percent",
+    "football_percent",
+    "walking_percent",
+    "cycling_percent"
+  ]
+}
