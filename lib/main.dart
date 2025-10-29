@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'services/hms_push_service.dart';
 import 'app/app.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await HmsPushService.instance.initAndRegister();
   runApp(const AirAwareApp());
 }
 

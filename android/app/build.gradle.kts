@@ -42,6 +42,8 @@ dependencies {
     implementation("com.huawei.agconnect:agconnect-core:1.5.2.300")
     // HMS Location SDK for native binding used by flutter_hms location plugin
     implementation("com.huawei.hms:location:6.12.0.300")
+    // HMS Push SDK for Huawei Push Kit
+    implementation("com.huawei.hms:push:6.12.0.300")
 }
 
 // ✅ Apply AGConnect plugin
