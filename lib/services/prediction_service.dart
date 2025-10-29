@@ -17,7 +17,7 @@ class PredictionService {
   Future<void> _ensureLoaded() async {
     if (_session != null) return;
     final modelBytes = await rootBundle.load(
-      'assets/models/activity_suitability_model.onnx',
+      'assets/models/activity_suitability_model_ir9_op19.onnx',
     );
     _session = OrtSession.fromBuffer(
       modelBytes.buffer.asUint8List(),
