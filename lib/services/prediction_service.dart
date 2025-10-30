@@ -30,6 +30,8 @@ class PredictionService {
     );
     final data = json.decode(jsonStr) as Map<String, dynamic>;
     _normMethod = (data['method'] as String?)?.toLowerCase() ?? 'none';
+
+    // Parse possible schemas
     _mean =
         (data['mean'] as List?)?.map((e) => (e as num).toDouble()).toList() ??
         const [];
@@ -43,20 +45,48 @@ class PredictionService {
         (data['max'] as List?)?.map((e) => (e as num).toDouble()).toList() ??
         const [];
 
-    // If scaler info missing or malformed, fall back to reasonable min-max ranges
+    // Support scikit-learn MinMaxScaler fields (data_min_, data_max_, data_range_)
+    final dataMin = (data['data_min_'] as List?)
+            ?.map((e) => (e as num).toDouble())
+            .toList() ??
+        const [];
+    final dataMax = (data['data_max_'] as List?)
+            ?.map((e) => (e as num).toDouble())
+            .toList() ??
+        const [];
+    final dataRange = (data['data_range_'] as List?)
+            ?.map((e) => (e as num).toDouble())
+            .toList() ??
+        const [];
+
     const expectedLen = 5; // temperature, uv, humidity, wind, rain_chance
-    final hasStandard =
-        _normMethod == 'standard' &&
-        _mean.length == expectedLen &&
-        _std.length == expectedLen;
-    final hasMinMax =
-        _normMethod == 'minmax' &&
-        _min.length == expectedLen &&
-        _max.length == expectedLen;
-    if (!hasStandard && !hasMinMax) {
+    final hasSklearnMinRange = dataMin.length == expectedLen && dataRange.length == expectedLen;
+    final hasSklearnMinMax = dataMin.length == expectedLen && dataMax.length == expectedLen;
+
+    if (hasSklearnMinRange || hasSklearnMinMax) {
       _normMethod = 'minmax';
-      _min = const [-10.0, 0.0, 0.0, 0.0, 0.0];
-      _max = const [45.0, 12.0, 100.0, 20.0, 100.0];
+      // Compute min/max from sklearn fields
+      _min = dataMin;
+      if (hasSklearnMinRange) {
+        _max = List.generate(expectedLen, (i) => dataMin[i] + dataRange[i]);
+      } else {
+        _max = dataMax;
+      }
+    } else {
+      // If explicit method/fields are provided, validate; otherwise use safe defaults
+      final hasStandard =
+          _normMethod == 'standard' &&
+          _mean.length == expectedLen &&
+          _std.length == expectedLen;
+      final hasMinMax =
+          _normMethod == 'minmax' &&
+          _min.length == expectedLen &&
+          _max.length == expectedLen;
+      if (!hasStandard && !hasMinMax) {
+        _normMethod = 'minmax';
+        _min = const [-10.0, 0.0, 0.0, 0.0, 0.0];
+        _max = const [45.0, 12.0, 100.0, 20.0, 100.0];
+      }
     }
   }
 
