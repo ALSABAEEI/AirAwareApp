@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AirAware</string>
+    <!-- ✅ Huawei App ID from agconnect-services.json -->
+    <string name="agc_app_id">115690013</string>
+</resources>

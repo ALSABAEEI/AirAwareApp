@@ -4,6 +4,9 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// ✅ Apply Huawei AGConnect plugin
+apply(plugin = "com.huawei.agconnect")
+
 android {
     namespace = "com.example.airawareapp"
     compileSdk = flutter.compileSdkVersion
@@ -22,12 +25,19 @@ android {
         applicationId = "com.example.airawareapp"
         minSdk = 26
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode()
-        versionName = flutter.versionName()
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     buildTypes {
         release {
+            // ✅ Enable ProGuard for release builds
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -37,14 +47,15 @@ flutter {
     source = "../.."
 }
 
-// ✅ Add AGConnect dependency
 dependencies {
-    implementation("com.huawei.agconnect:agconnect-core:1.5.2.300")
-    // HMS Location SDK for native binding used by flutter_hms location plugin
-    implementation("com.huawei.hms:location:6.12.0.300")
-    // HMS Push SDK for Huawei Push Kit
-    implementation("com.huawei.hms:push:6.12.0.300")
+    // ✅ Huawei Mobile Services (HMS) dependencies
+    // Location Kit for GPS/location services
+    implementation("com.huawei.hms:location:6.11.0.300") {
+        // Exclude problematic transitive dependency
+        exclude(group = "com.huawei.hms", module = "ucs-credential-developers")
+    }
+    implementation("com.huawei.agconnect:agconnect-core:1.9.1.301")
+    
+    // HMS Core SDK for device capability detection
+    implementation("com.huawei.hms:base:6.11.0.301")
 }
-
-// ✅ Apply AGConnect plugin
-apply(plugin = "com.huawei.agconnect")

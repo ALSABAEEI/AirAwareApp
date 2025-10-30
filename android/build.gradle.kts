@@ -5,14 +5,14 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        // Huawei Maven repo
+        // ✅ ADD: Huawei Maven repository for HMS SDK
         maven { url = uri("https://developer.huawei.com/repo/") }
     }
     dependencies {
         // Android Gradle plugin (required by Flutter)
         classpath("com.android.tools.build:gradle:8.3.0")
-        // Huawei AGConnect plugin
-        classpath("com.huawei.agconnect:agcp:1.5.2.300")
+        // ✅ ADD: Huawei AGConnect plugin
+        classpath("com.huawei.agconnect:agcp:1.9.1.301")
     }
 }
 
@@ -20,7 +20,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        // Huawei Maven repo
+        // ✅ ADD: Huawei Maven repository (required for HMS dependencies)
         maven { url = uri("https://developer.huawei.com/repo/") }
     }
 }
