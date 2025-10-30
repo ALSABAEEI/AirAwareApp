@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'services/hms_push_service.dart';
+// import 'services/hms_push_service.dart';  // Commented out - HMS Push incompatible
 import 'app/app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await HmsPushService.instance.initAndRegister();
+  // await HmsPushService.instance.initAndRegister();  // Commented out - HMS Push incompatible
   runApp(const AirAwareApp());
 }
 

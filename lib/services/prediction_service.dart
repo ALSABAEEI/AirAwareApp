@@ -168,7 +168,7 @@ class PredictionService {
     if (_interpreter != null) return;
     // For tflite_flutter, provide the asset key relative to pubspec assets
     _interpreter = await Interpreter.fromAsset(
-      'model/airaware_model_fp16.tflite',
+      'assets/model/airaware_model_fp16.tflite',
     );
     await _loadScaler();
     await _loadOutputOrder();
