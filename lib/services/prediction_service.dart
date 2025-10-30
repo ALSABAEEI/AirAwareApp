@@ -42,6 +42,22 @@ class PredictionService {
     _max =
         (data['max'] as List?)?.map((e) => (e as num).toDouble()).toList() ??
         const [];
+
+    // If scaler info missing or malformed, fall back to reasonable min-max ranges
+    const expectedLen = 5; // temperature, uv, humidity, wind, rain_chance
+    final hasStandard =
+        _normMethod == 'standard' &&
+        _mean.length == expectedLen &&
+        _std.length == expectedLen;
+    final hasMinMax =
+        _normMethod == 'minmax' &&
+        _min.length == expectedLen &&
+        _max.length == expectedLen;
+    if (!hasStandard && !hasMinMax) {
+      _normMethod = 'minmax';
+      _min = const [-10.0, 0.0, 0.0, 0.0, 0.0];
+      _max = const [45.0, 12.0, 100.0, 20.0, 100.0];
+    }
   }
 
   Future<void> _loadOutputOrder() async {
