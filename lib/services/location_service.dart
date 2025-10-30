@@ -185,10 +185,7 @@ class LocationService {
       }
       
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 0,
-        ),
+        desiredAccuracy: LocationAccuracy.high,
       );
       print('✅ Got location from Android GPS: ${position.latitude}, ${position.longitude}');
       lastLocationSource = 'Android Native GPS';

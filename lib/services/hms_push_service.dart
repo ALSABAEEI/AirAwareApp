@@ -12,49 +12,59 @@ class HmsPushService {
     if (!Platform.isAndroid) return;
     if (_initialized) return;
 
-    // Ensure Huawei Mobile Services is present
-    final bool isHmsAvailable = await hms.Push.isHuaweiMobileServicesAvailable;
-    if (!isHmsAvailable) {
-      _initialized = true;
-      return;
-    }
+    print('🚀 [HMS PUSH] Starting initialization...');
 
     // Android 13+ requires runtime notification permission
     final status = await Permission.notification.status;
     if (!status.isGranted) {
+      print('🔐 [HMS PUSH] Requesting notification permission...');
       await Permission.notification.request();
+    } else {
+      print('✅ [HMS PUSH] Notification permission granted');
     }
 
     // Enable auto init for token generation
-    await hms.Push.setAutoInitEnabled(true);
+    hms.Push.setAutoInitEnabled(true);
+    print('✅ [HMS PUSH] Auto-init enabled');
 
     String? token;
     try {
-      token = await hms.Push.getToken("");
-    } catch (_) {
-      // Ignore; token may arrive via onTokenRefresh
+      hms.Push.getToken("");
+      print('✅ [HMS PUSH] Token request sent');
+    } catch (e) {
+      print('⚠️ [HMS PUSH] Failed to request token: $e');
     }
 
-    // Listen for token refresh
-    hms.Push.onTokenRefreshStream.listen((String newToken) {
-      // TODO: send token to your backend for daily broadcasts
+    // Listen for token
+    hms.Push.getTokenStream.listen((String newToken) {
+      print('🎫 [HMS PUSH] Token received: ${newToken.substring(0, 20)}...');
+      print('📱 [HMS PUSH] FULL TOKEN: $newToken');
+      token = newToken;
+    }, onError: (err) {
+      print('⚠️ [HMS PUSH] Token error: $err');
     });
 
     // Subscribe to a common topic for daily reminders
     try {
-      await hms.Push.subscribe("daily");
-    } catch (_) {}
+      hms.Push.subscribe("daily");
+      print('✅ [HMS PUSH] Subscribed to "daily" topic');
+    } catch (e) {
+      print('⚠️ [HMS PUSH] Failed to subscribe: $e');
+    }
 
     // Optional foreground message listener
     hms.Push.onMessageReceivedStream.listen((hms.RemoteMessage msg) {
-      // Background notifications with notification payload will be shown by HMS.
+      print('📩 [HMS PUSH] Message received!');
+      print('   Data: ${msg.data}');
+      if (msg.notification != null) {
+        print('   Title: ${msg.notification!.title}');
+        print('   Body: ${msg.notification!.body}');
+      }
     });
 
-    if (token != null && token.isNotEmpty) {
-      // TODO: send token to your backend for daily broadcasts
-    }
-
     _initialized = true;
+    print('✅ [HMS PUSH] Initialization complete!');
+    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
 }
 
