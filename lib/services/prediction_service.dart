@@ -65,8 +65,25 @@ class PredictionService {
       final jsonStr = await rootBundle.loadString(
         'assets/model/airaware_output_order.json',
       );
-      final list = json.decode(jsonStr) as List;
-      _outputOrder = list.map((e) => e.toString()).toList();
+      final dynamic parsed = json.decode(jsonStr);
+      List<dynamic> rawList;
+      if (parsed is List) {
+        rawList = parsed;
+      } else if (parsed is Map && parsed['outputs'] is List) {
+        rawList = parsed['outputs'] as List;
+      } else {
+        throw const FormatException('Unsupported output_order schema');
+      }
+      _outputOrder = rawList
+          .map((e) => e.toString())
+          .map((s) {
+            var base = s.trim();
+            if (base.isEmpty) return 'Activity';
+            base = base.replaceAll('_percent', '');
+            base = base.replaceAll('_', ' ');
+            return base.substring(0, 1).toUpperCase() + base.substring(1);
+          })
+          .toList(growable: false);
     } catch (_) {
       // Fallback to default
       _outputOrder = const [

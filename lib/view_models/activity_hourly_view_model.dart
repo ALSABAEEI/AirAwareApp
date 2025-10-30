@@ -58,7 +58,9 @@ class ActivityHourlyViewModel extends ChangeNotifier {
         final labels = _predictor.outputOrder;
         final map = <String, double>{};
         for (int i = 0; i < 6 && i < out.length && i < labels.length; i++) {
-          map[labels[i]] = out[i].clamp(0, 100);
+          // Model is designed for 10..100; enforce floor to avoid 0% bug
+          final v = out[i];
+          map[labels[i]] = v < 10 ? 10 : (v > 100 ? 100 : v);
         }
         final item = HourSuitability(dt, map);
         if (dt.isBefore(endToday)) {
