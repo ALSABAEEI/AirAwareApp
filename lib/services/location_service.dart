@@ -144,13 +144,36 @@ class LocationService {
 
   Future<String?> getCityName(double lat, double lon) async {
     try {
+      print('🔍 Geocoding coordinates: $lat, $lon');
       final placemarks = await geo.placemarkFromCoordinates(lat, lon);
+      
       if (placemarks.isNotEmpty) {
-        return placemarks.first.locality ?? placemarks.first.administrativeArea;
+        final place = placemarks.first;
+        print('📍 Geocoding result: ${place.toString()}');
+        print('   locality: "${place.locality}"');
+        print('   subAdministrativeArea: "${place.subAdministrativeArea}"');
+        print('   administrativeArea: "${place.administrativeArea}"');
+        print('   country: "${place.country}"');
+        
+        // Try different fields to get the best location name
+        // Some geocoding providers don't populate all fields
+        final cityName = (place.subAdministrativeArea?.isNotEmpty == true) ? place.subAdministrativeArea :
+                        (place.locality?.isNotEmpty == true) ? place.locality :
+                        (place.administrativeArea?.isNotEmpty == true) ? place.administrativeArea :
+                        (place.country?.isNotEmpty == true) ? place.country :
+                        'Unknown';
+        
+        print('✅ City name: "$cityName"');
+        return cityName;
+      } else {
+        print('⚠️ No placemarks found for coordinates');
       }
     } catch (e) {
-      print('Geocoding error: $e');
+      print('❌ Geocoding error: $e');
+      print('📍 Using coordinates as fallback: ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}');
+      // Return coordinates as fallback
+      return '${lat.toStringAsFixed(4)}°N, ${lon.toStringAsFixed(4)}°E';
     }
-    return null;
+    return 'Unknown Location';
   }
 }

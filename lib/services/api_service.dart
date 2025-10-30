@@ -88,6 +88,8 @@ class ApiService {
       final lon = location['longitude']!;
       
       print('🌤️ Fetching weather for location: $lat, $lon (hour offset: $hourOffset)');
+      print('✅ Got location: $lat, $lon');
+      print('🌍 Getting city name...');
       
       // Fetch weather data using coordinates
       final weatherData = await fetchWeather(lat, lon);
@@ -188,6 +190,7 @@ class ApiService {
       final cityName = await locationService.getCityName(lat, lon);
       result['city_name'] = cityName;
       
+      print('🏙️ City name: $cityName');
       print('✅ Weather data processed successfully for ${cityName ?? 'Unknown City'}');
       
       return result;

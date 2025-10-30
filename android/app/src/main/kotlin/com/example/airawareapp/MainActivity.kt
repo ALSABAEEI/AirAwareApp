@@ -84,38 +84,18 @@ class MainActivity : FlutterActivity() {
         val resultSent = java.util.concurrent.atomic.AtomicBoolean(false)
         
         try {
-            // First, try to get last known location (fastest)
-            fusedLocationClient?.lastLocation?.addOnSuccessListener { lastLocation ->
-                if (lastLocation != null && resultSent.compareAndSet(false, true)) {
-                    Log.i(TAG, "✅ HMS Last known location: ${lastLocation.latitude}, ${lastLocation.longitude}")
-                    val locationMap = hashMapOf(
-                        "latitude" to lastLocation.latitude,
-                        "longitude" to lastLocation.longitude,
-                        "accuracy" to lastLocation.accuracy.toDouble(),
-                        "timestamp" to lastLocation.time
-                    )
-                    result.success(locationMap)
-                    return@addOnSuccessListener
-                }
-                
-                // If no last location, request a fresh one
-                if (!resultSent.get()) {
-                    requestFreshLocation(result, resultSent)
-                }
-            }?.addOnFailureListener { e ->
-                if (!resultSent.get()) {
-                    Log.w(TAG, "⚠️ Failed to get last location, trying fresh location: ${e.message}")
-                    requestFreshLocation(result, resultSent)
-                }
-            }
+            // ALWAYS request fresh location for accurate weather data
+            // Don't use cached location as it might be old and inaccurate
+            Log.i(TAG, "🔍 Requesting fresh location for accurate weather...")
+            requestFreshLocation(result, resultSent)
             
-            // Timeout after 10 seconds
+            // Timeout after 15 seconds
             android.os.Handler(Looper.getMainLooper()).postDelayed({
                 if (resultSent.compareAndSet(false, true)) {
-                    Log.w(TAG, "⏱️ HMS Location timeout - no location received in 10 seconds")
+                    Log.w(TAG, "⏱️ HMS Location timeout - no location received in 15 seconds")
                     result.error("TIMEOUT", "HMS Location request timed out", null)
                 }
-            }, 10000)
+            }, 15000)
             
         } catch (e: Exception) {
             if (resultSent.compareAndSet(false, true)) {
@@ -127,9 +107,9 @@ class MainActivity : FlutterActivity() {
     
     private fun requestFreshLocation(result: MethodChannel.Result, resultSent: java.util.concurrent.atomic.AtomicBoolean) {
         try {
-            // First try with BALANCED_POWER_ACCURACY (uses network + GPS, works better indoors)
+            // Use HIGH_ACCURACY for most accurate GPS location
             val locationRequest = LocationRequest.create().apply {
-                priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
+                priority = LocationRequest.PRIORITY_HIGH_ACCURACY // GPS only for best accuracy
                 interval = 1000
                 fastestInterval = 500
                 numUpdates = 1
@@ -139,7 +119,7 @@ class MainActivity : FlutterActivity() {
                 override fun onLocationResult(locationResult: LocationResult) {
                     val location = locationResult.lastLocation
                     if (location != null && resultSent.compareAndSet(false, true)) {
-                        Log.i(TAG, "✅ HMS Location obtained: ${location.latitude}, ${location.longitude} (accuracy: ${location.accuracy}m)")
+                        Log.i(TAG, "✅ HMS FRESH Location obtained: ${location.latitude}, ${location.longitude} (accuracy: ${location.accuracy}m)")
                         val locationMap = hashMapOf(
                             "latitude" to location.latitude,
                             "longitude" to location.longitude,
@@ -161,7 +141,7 @@ class MainActivity : FlutterActivity() {
                 }
             }
             
-            Log.i(TAG, "🔍 Requesting HMS location (balanced power - network + GPS)...")
+            Log.i(TAG, "🔍 Requesting HMS FRESH HIGH ACCURACY location (GPS)...")
             fusedLocationClient?.requestLocationUpdates(
                 locationRequest,
                 locationCallback,
