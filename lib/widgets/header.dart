@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-import '../views/notifications/notifications_view.dart';
 import '../view_models/dashboard_view_model.dart';
 import '../services/location_service.dart';
 
@@ -44,27 +42,6 @@ class Header extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              _IconChip(
-                icon: Icons.location_on,
-                color: const Color(0xFF4CAF50),
-                tooltip: 'Location',
-                onTap: () {
-                  _showLocationDialog(context);
-                },
-              ),
-              const SizedBox(width: 8),
-              _IconChip(
-                icon: Icons.notifications_none_rounded,
-                color: const Color(0xFF6B5CF6),
-                tooltip: 'Notifications',
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationsView(),
-                    ),
-                  );
-                },
-              ),
             ],
           ),
           const SizedBox(height: 8),

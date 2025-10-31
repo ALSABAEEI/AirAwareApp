@@ -5,7 +5,6 @@ import '../views/shell/app_shell.dart';
 import '../view_models/shell_view_model.dart';
 import '../view_models/dashboard_view_model.dart';
 import '../view_models/profile_view_model.dart';
-import '../view_models/notifications_view_model.dart';
 
 class AirAwareApp extends StatelessWidget {
   const AirAwareApp({super.key});
@@ -18,7 +17,6 @@ class AirAwareApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ShellViewModel()),
         ChangeNotifierProvider(create: (_) => DashboardViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
-        ChangeNotifierProvider(create: (_) => NotificationsViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

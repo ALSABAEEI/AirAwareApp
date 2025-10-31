@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import '../../services/api_service.dart';
 
-class WeatherTestScreen extends StatefulWidget {
-  const WeatherTestScreen({super.key});
+class WeatherView extends StatefulWidget {
+  const WeatherView({super.key});
 
   @override
-  State<WeatherTestScreen> createState() => _WeatherTestScreenState();
+  State<WeatherView> createState() => _WeatherViewState();
 }
 
-class _WeatherTestScreenState extends State<WeatherTestScreen> {
+class _WeatherViewState extends State<WeatherView> {
   final ApiService apiService = ApiService();
   Map<String, dynamic>? weatherData;
   bool loading = true;
@@ -26,11 +26,8 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
       loading = true;
       error = null;
     });
-    
     try {
-      // Fetch weather for the selected hour
       final data = await apiService.fetchWeatherForHour(selectedHours);
-      
       if (data != null) {
         setState(() {
           weatherData = data;
@@ -54,16 +51,16 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
     setState(() {
       selectedHours = newHour;
     });
-    _getWeather(); // Fetch new weather data
+    _getWeather();
   }
 
   @override
   Widget build(BuildContext context) {
     final currentTime = DateTime.now();
     final forecastTime = currentTime.add(Duration(hours: selectedHours));
-    
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Weather API Test')),
+      appBar: AppBar(title: const Text('Weather')),
       body: Center(
         child: loading
             ? const CircularProgressIndicator()
@@ -72,7 +69,6 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
                 : ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
-                      // Time Filter Section
                       Card(
                         color: Colors.blue.shade50,
                         child: Padding(
@@ -86,9 +82,9 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                selectedHours == 0 
-                                  ? 'Current Weather' 
-                                  : 'In $selectedHours ${selectedHours == 1 ? 'hour' : 'hours'}',
+                                selectedHours == 0
+                                    ? 'Current Weather'
+                                    : 'In $selectedHours ${selectedHours == 1 ? 'hour' : 'hours'}',
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.blue.shade700,
@@ -114,9 +110,7 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
                                       min: 0,
                                       max: 48,
                                       divisions: 48,
-                                      label: selectedHours == 0 
-                                        ? 'Now' 
-                                        : '+$selectedHours hrs',
+                                      label: selectedHours == 0 ? 'Now' : '+$selectedHours hrs',
                                       onChanged: (value) {
                                         _onHourChanged(value.toInt());
                                       },
@@ -124,10 +118,7 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: Colors.blue.shade700,
                                       borderRadius: BorderRadius.circular(20),
@@ -163,14 +154,9 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
                       ),
                       const SizedBox(height: 16),
                       const Divider(),
-                      // Location information section
                       if (weatherData!['city_name'] != null)
                         _info('📍 Location', weatherData!['city_name']),
-                      if (weatherData!['latitude'] != null && weatherData!['longitude'] != null)
-                        _info('🗺️ Coordinates', '${weatherData!['latitude']?.toStringAsFixed(4)}, ${weatherData!['longitude']?.toStringAsFixed(4)}'),
-                      if (weatherData!['location_source'] != null)
-                        _info('📡 Source', weatherData!['location_source']),
-                      
+                      // Coordinates and source intentionally hidden from UI per request
                       const Divider(),
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -179,8 +165,6 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      
-                      // Weather description (from API)
                       if (weatherData!['weather_main'] != null)
                         _infoCard(
                           '🌈 Condition',
@@ -188,38 +172,24 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
                           subtitle: weatherData!['weather_description'] ?? '',
                           color: Colors.blue.shade50,
                         ),
-                      
-                      // Temperature data
                       _infoCard(
                         '🌡️ Temperature',
                         '${weatherData!['temperature']?.toStringAsFixed(1)} °C',
-                        subtitle: weatherData!['feels_like'] != null 
-                          ? 'Feels like ${weatherData!['feels_like']?.toStringAsFixed(1)} °C'
-                          : null,
+                        subtitle: weatherData!['feels_like'] != null ? 'Feels like ${weatherData!['feels_like']?.toStringAsFixed(1)} °C' : null,
                         color: Colors.orange.shade50,
                       ),
-                      
-                      // UV Index
                       _infoCard(
                         '☀️ UV Index',
                         '${weatherData!['uv_index']?.toStringAsFixed(1)}',
                         subtitle: _getUVDescription(weatherData!['uv_index']),
                         color: Colors.yellow.shade50,
                       ),
-                      
-                      // Humidity
                       _info('💧 Humidity', '${weatherData!['humidity']} %'),
-                      
-                      // Wind Speed
                       _info('🌬️ Wind Speed', '${weatherData!['wind_speed']?.toStringAsFixed(1)} m/s'),
-                      
-                      // Precipitation data (accurate from API)
                       if (weatherData!['is_current'] == true)
                         _infoCard(
                           '💧 Precipitation',
-                          weatherData!['precipitation'] > 0 
-                            ? '${weatherData!['precipitation']?.toStringAsFixed(2)} mm/h'
-                            : 'No precipitation',
+                          weatherData!['precipitation'] > 0 ? '${weatherData!['precipitation']?.toStringAsFixed(2)} mm/h' : 'No precipitation',
                           subtitle: 'Real-time data',
                           color: Colors.blue.shade50,
                         )
@@ -227,24 +197,15 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
                         _infoCard(
                           '🌧️ Rain Forecast',
                           '${weatherData!['rain_chance']?.toStringAsFixed(0)}% chance',
-                          subtitle: weatherData!['precipitation'] > 0 
-                            ? 'Expected: ${weatherData!['precipitation']?.toStringAsFixed(2)} mm/h'
-                            : null,
+                          subtitle: weatherData!['precipitation'] > 0 ? 'Expected: ${weatherData!['precipitation']?.toStringAsFixed(2)} mm/h' : null,
                           color: Colors.lightBlue.shade50,
                         ),
-                      
-                      // Cloud coverage
                       if (weatherData!['clouds'] != null)
                         _info('☁️ Cloud Coverage', '${weatherData!['clouds']} %'),
-                      
-                      // Visibility
                       if (weatherData!['visibility'] != null)
                         _info('👁️ Visibility', '${(weatherData!['visibility'] / 1000).toStringAsFixed(1)} km'),
-                      
-                      // Atmospheric pressure
                       if (weatherData!['pressure'] != null)
                         _info('🌡️ Pressure', '${weatherData!['pressure']} hPa'),
-                      
                       const SizedBox(height: 20),
                       ElevatedButton.icon(
                         onPressed: _getWeather,
@@ -266,12 +227,10 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
   String _formatDateTime(DateTime dateTime) {
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
     final dayName = days[dateTime.weekday - 1];
     final monthName = months[dateTime.month - 1];
     final hour = dateTime.hour.toString().padLeft(2, '0');
     final minute = dateTime.minute.toString().padLeft(2, '0');
-    
     return '$dayName, $monthName ${dateTime.day}, ${dateTime.year} at $hour:$minute';
   }
 
@@ -313,3 +272,5 @@ class _WeatherTestScreenState extends State<WeatherTestScreen> {
         ),
       );
 }
+
+

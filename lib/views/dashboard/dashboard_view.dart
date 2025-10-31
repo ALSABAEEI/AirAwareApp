@@ -7,7 +7,6 @@ import '../../view_models/dashboard_view_model.dart';
 import '../../widgets/header.dart';
 import '../../widgets/recommend_card.dart';
 import '../../widgets/activity_card.dart';
-import '../../screens/weather_test_screen.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -263,9 +262,12 @@ class _DashboardViewState extends State<DashboardView>
                       child: RecommendCard(),
                     ),
                     const SizedBox(height: 20),
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(20, 0, 20, 24),
-                      child: _Grid(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      child: ChangeNotifierProvider(
+                        create: (_) => ActivityHourlyViewModel()..load(),
+                        child: const _Grid(),
+                      ),
                     ),
                   ],
                 ),
@@ -274,16 +276,7 @@ class _DashboardViewState extends State<DashboardView>
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const WeatherTestScreen()));
-        },
-        icon: const Icon(Icons.cloud),
-        label: const Text('Weather Test'),
-        backgroundColor: Colors.blue.shade600,
-      ),
+      // Removed Weather Test FAB; Weather is now a dedicated tab
     );
   }
 }
@@ -313,6 +306,15 @@ class _Grid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hourly = context.watch<ActivityHourlyViewModel?>();
+    final nowPercent = (String activity) {
+      if (hourly == null || hourly.today.isEmpty) return null;
+      final m = hourly.today.first.percents;
+      final v = m[activity];
+      if (v == null) return null;
+      return (v / 100.0).clamp(0.0, 1.0);
+    };
+
     return GridView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -327,6 +329,7 @@ class _Grid extends StatelessWidget {
           icon: Icons.directions_run_rounded,
           iconBackground: const Color(0xFF50C878), // Emerald Green
           title: 'Jogging',
+          percent: nowPercent('Jogging'),
           onTap: () => _navigateToDetail(
             context,
             'Jogging',
@@ -338,6 +341,7 @@ class _Grid extends StatelessWidget {
           icon: Icons.pool_rounded,
           iconBackground: const Color(0xFF4682B4), // Steel Blue
           title: 'Swimming',
+          percent: nowPercent('Swimming'),
           onTap: () => _navigateToDetail(
             context,
             'Swimming',
@@ -349,6 +353,7 @@ class _Grid extends StatelessWidget {
           icon: Icons.pedal_bike_rounded,
           iconBackground: const Color(0xFFFF7F50), // Coral
           title: 'Bike',
+          percent: nowPercent('Bike') ?? nowPercent('Cycling'),
           onTap: () => _navigateToDetail(
             context,
             'Bike',
@@ -360,6 +365,7 @@ class _Grid extends StatelessWidget {
           icon: Icons.sports_soccer_rounded,
           iconBackground: const Color(0xFF6A5ACD), // Slate Blue
           title: 'Football',
+          percent: nowPercent('Football'),
           onTap: () => _navigateToDetail(
             context,
             'Football',
@@ -371,6 +377,7 @@ class _Grid extends StatelessWidget {
           icon: Icons.directions_walk_rounded,
           iconBackground: const Color(0xFF8A9A5B), // Sage Green
           title: 'Walking',
+          percent: nowPercent('Walking'),
           onTap: () => _navigateToDetail(
             context,
             'Walking',
@@ -382,6 +389,7 @@ class _Grid extends StatelessWidget {
           icon: Icons.hiking_rounded,
           iconBackground: const Color(0xFF967969), // Woodsy Brown
           title: 'Hiking',
+          percent: nowPercent('Hiking'),
           onTap: () => _navigateToDetail(
             context,
             'Hiking',

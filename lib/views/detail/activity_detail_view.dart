@@ -153,6 +153,15 @@ class _ForecastList extends StatelessWidget {
 
   const _ForecastList({required this.activity, required this.items});
 
+  String _normalizeActivity(String name) {
+    switch (name) {
+      case 'Bike':
+        return 'Cycling';
+      default:
+        return name;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -160,7 +169,8 @@ class _ForecastList extends StatelessWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         final h = items[index];
-        final percent = ((h.percents[activity] ?? 0) / 100.0).clamp(0.0, 1.0);
+        final key = _normalizeActivity(activity);
+        final percent = ((h.percents[key] ?? 0) / 100.0).clamp(0.0, 1.0);
         final dt = h.time;
         final hour = dt.hour;
         final ampm = hour < 12 ? 'AM' : 'PM';

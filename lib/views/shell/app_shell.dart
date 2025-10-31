@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../dashboard/dashboard_view.dart';
-import '../profile/profile_view.dart';
+import '../weather/weather_view.dart';
 import 'package:provider/provider.dart';
 import '../../view_models/shell_view_model.dart';
 
@@ -14,7 +14,7 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  final _pages = const [DashboardView(), ProfileView()];
+  final _pages = const [DashboardView(), WeatherView()];
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +76,8 @@ class _GlassNavBar extends StatelessWidget {
                     onTap: () => onChanged(0),
                   ),
                   _NavItem(
-                    icon: Icons.person_rounded,
-                    label: 'Profile',
+                    icon: Icons.cloud_outlined,
+                    label: 'Weather',
                     selected: index == 1,
                     onTap: () => onChanged(1),
                   ),

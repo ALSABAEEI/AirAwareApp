@@ -7,12 +7,14 @@ class ActivityCard extends StatefulWidget {
     required this.iconBackground,
     required this.title,
     this.onTap,
+    this.percent,
   });
 
   final IconData icon;
   final Color iconBackground;
   final String title;
   final VoidCallback? onTap;
+  final double? percent; // 0..1
 
   @override
   State<ActivityCard> createState() => _ActivityCardState();
@@ -96,6 +98,31 @@ class _ActivityCardState extends State<ActivityCard>
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+                    if (widget.percent != null) ...[
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: LinearProgressIndicator(
+                                value: widget.percent!.clamp(0.0, 1.0),
+                                minHeight: 10,
+                                backgroundColor: Colors.black.withOpacity(0.06),
+                                color: _barColor(widget.percent!),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            '${((widget.percent!.clamp(0.0, 1.0)) * 100).round()}%',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -104,5 +131,11 @@ class _ActivityCardState extends State<ActivityCard>
         ),
       ),
     );
+  }
+
+  Color _barColor(double p) {
+    if (p > 0.75) return Colors.green.shade400;
+    if (p > 0.4) return Colors.orange.shade400;
+    return Colors.red.shade400;
   }
 }
