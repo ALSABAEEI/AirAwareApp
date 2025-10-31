@@ -19,21 +19,51 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _bgController = AnimationController(
     vsync: this,
     duration: const Duration(seconds: 8),
   )..repeat(reverse: true);
+  
+  bool _isDialogShowing = false;
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _bgController.dispose();
     super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    // When app resumes (user returns from settings)
+    if (state == AppLifecycleState.resumed && _isDialogShowing) {
+      _checkLocationAndDismissDialog();
+    }
+  }
+  
+  Future<void> _checkLocationAndDismissDialog() async {
+    final vm = context.read<DashboardViewModel>();
+    
+    // Re-check location status
+    await vm.checkLocationStatus();
+    
+    if (!vm.needsLocationPrompt && mounted) {
+      // Location is now enabled! Close the dialog and get location
+      _isDialogShowing = false;
+      Navigator.of(context, rootNavigator: true).pop();
+      await vm.refreshWithCurrentLocation(LocationService());
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    // Register as lifecycle observer
+    WidgetsBinding.instance.addObserver(this);
+    
     // Auto-run the first-time flow: request permission and fetch location → show city
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final vm = context.read<DashboardViewModel>();
@@ -48,6 +78,7 @@ class _DashboardViewState extends State<DashboardView>
   
   void _showLocationDialog() async {
     final vm = context.read<DashboardViewModel>();
+    _isDialogShowing = true;
     
     showDialog(
       context: context,
@@ -117,6 +148,7 @@ class _DashboardViewState extends State<DashboardView>
           actions: [
             TextButton(
               onPressed: () {
+                _isDialogShowing = false;
                 vm.clearLocationPrompt();
                 Navigator.pop(dialogContext);
               },
@@ -124,26 +156,15 @@ class _DashboardViewState extends State<DashboardView>
             ),
             ElevatedButton.icon(
               onPressed: () async {
-                Navigator.pop(dialogContext);
-                
                 if (!vm.isLocationServiceEnabled) {
-                  // Open location settings
+                  // Open location settings - keep dialog open
                   await Geolocator.openLocationSettings();
-                  // Wait a bit for user to enable location
-                  await Future.delayed(const Duration(seconds: 1));
-                  // Re-check status
-                  if (mounted) {
-                    await vm.checkLocationStatus();
-                    // If still disabled, show dialog again
-                    if (vm.needsLocationPrompt && mounted) {
-                      _showLocationDialog();
-                    } else if (!vm.needsLocationPrompt && mounted) {
-                      // Location enabled, now get it
-                      await vm.refreshWithCurrentLocation(LocationService());
-                    }
-                  }
+                  // The dialog will auto-dismiss when user returns with location enabled
                 } else {
                   // Request location permission
+                  Navigator.pop(dialogContext);
+                  _isDialogShowing = false;
+                  
                   final locationService = LocationService();
                   final granted = await locationService.requestPermission();
                   
@@ -154,6 +175,9 @@ class _DashboardViewState extends State<DashboardView>
                   } else if (mounted) {
                     // Permission denied, check again
                     await vm.checkLocationStatus();
+                    if (vm.needsLocationPrompt) {
+                      _showLocationDialog();
+                    }
                   }
                 }
               },
