@@ -77,54 +77,60 @@ class _ActivityCardState extends State<ActivityCard>
                 ],
               ),
               padding: const EdgeInsets.all(18),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundColor: widget.iconBackground.withOpacity(0.15),
-                      child: Icon(
-                        widget.icon,
-                        color: widget.iconBackground,
-                        size: 32,
-                      ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundColor: widget.iconBackground.withOpacity(0.15),
+                    child: Icon(
+                      widget.icon,
+                      color: widget.iconBackground,
+                      size: 28,
                     ),
-                    const SizedBox(height: 18),
-                    Text(
-                      widget.title,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    widget.title,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
                     ),
-                    if (widget.percent != null) ...[
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: LinearProgressIndicator(
-                                value: widget.percent!.clamp(0.0, 1.0),
-                                minHeight: 10,
-                                backgroundColor: Colors.black.withOpacity(0.06),
-                                color: _barColor(widget.percent!),
-                              ),
+                  ),
+                  if (widget.percent != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              value: widget.percent!.clamp(0.0, 1.0),
+                              minHeight: 8,
+                              backgroundColor: Colors.black.withOpacity(0.06),
+                              color: _barColor(widget.percent!),
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          Text(
+                        ),
+                        const SizedBox(width: 6),
+                        SizedBox(
+                          width: 38,
+                          child: Text(
                             '${((widget.percent!.clamp(0.0, 1.0)) * 100).round()}%',
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w800,
+                              fontSize: 12,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ],
-                ),
+                ],
               ),
             );
           },
