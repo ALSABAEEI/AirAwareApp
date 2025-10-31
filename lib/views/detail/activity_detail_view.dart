@@ -40,6 +40,8 @@ class _ActivityDetailViewState extends State<ActivityDetailView>
 
   @override
   Widget build(BuildContext context) {
+    final base = widget.iconBackground;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -74,8 +76,8 @@ class _ActivityDetailViewState extends State<ActivityDetailView>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              widget.iconBackground.withOpacity(0.8),
-              widget.iconBackground.withOpacity(0.4),
+              base.withOpacity(0.55),
+              base.withOpacity(0.25),
             ],
           ),
         ),
@@ -83,29 +85,53 @@ class _ActivityDetailViewState extends State<ActivityDetailView>
           child: Column(
             children: [
               const SizedBox(height: 20),
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.white.withOpacity(0.9),
-                child: Icon(
-                  widget.activityIcon,
-                  color: widget.iconBackground,
-                  size: 40,
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: 42,
+                  backgroundColor: Colors.white.withOpacity(0.95),
+                  child: Icon(
+                    widget.activityIcon,
+                    color: widget.iconBackground,
+                    size: 42,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
-              TabBar(
-                controller: _tabController,
-                indicatorColor: Colors.white,
-                indicatorWeight: 3,
-                labelStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                unselectedLabelStyle: const TextStyle(fontSize: 16),
-                tabs: const [
-                  Tab(text: 'Today'),
-                  Tab(text: 'Tomorrow'),
-                ],
+                child: TabBar(
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  labelColor: widget.iconBackground,
+                  unselectedLabelColor: Colors.white,
+                  labelStyle: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  tabs: const [
+                    Tab(text: 'Today'),
+                    Tab(text: 'Tomorrow'),
+                  ],
+                ),
               ),
               Expanded(
                 child: Consumer<ActivityHourlyViewModel>(
@@ -190,58 +216,88 @@ class _HourlyForecastRow extends StatelessWidget {
   const _HourlyForecastRow({required this.label, required this.percent});
 
   Color _getBarColor(double recommendation) {
-    if (recommendation > 0.75) return Colors.green.shade400;
-    if (recommendation > 0.4) return Colors.orange.shade400;
-    return Colors.red.shade400;
+    if (recommendation > 0.75) return const Color(0xFF34D399); // emerald
+    if (recommendation > 0.4) return const Color(0xFFF59E0B); // amber
+    return const Color(0xFFEF4444); // red
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final percentText = '${(percent * 100).round()}%';
+    final percentInt = (percent * 100).round();
+    final barColor = _getBarColor(percent);
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.25)),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 6)),
+        ],
       ),
       child: Row(
         children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: barColor, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 10),
           Expanded(
             flex: 2,
             child: Text(
               label,
               style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
                 color: Colors.white,
               ),
             ),
           ),
           Expanded(
-            flex: 3,
-            child: Row(
+            flex: 4,
+            child: Stack(
+              alignment: Alignment.centerLeft,
               children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LinearProgressIndicator(
-                      value: percent,
-                      minHeight: 12,
-                      backgroundColor: Colors.white.withOpacity(0.3),
-                      color: _getBarColor(percent),
+                Container(
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                FractionallySizedBox(
+                  widthFactor: percent.clamp(0.0, 1.0),
+                  child: Container(
+                    height: 12,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [barColor.withOpacity(0.9), barColor],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  percentText,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
               ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: barColor,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Text(
+              '$percentInt%',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ],

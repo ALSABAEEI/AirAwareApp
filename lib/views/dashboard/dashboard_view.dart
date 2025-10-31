@@ -8,7 +8,6 @@ import '../../widgets/header.dart';
 import '../../widgets/recommend_card.dart';
 import '../../widgets/activity_card.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -23,7 +22,7 @@ class _DashboardViewState extends State<DashboardView>
     vsync: this,
     duration: const Duration(seconds: 8),
   )..repeat(reverse: true);
-  
+
   bool _isDialogShowing = false;
 
   @override
@@ -32,23 +31,23 @@ class _DashboardViewState extends State<DashboardView>
     _bgController.dispose();
     super.dispose();
   }
-  
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     // When app resumes (user returns from settings)
     if (state == AppLifecycleState.resumed && _isDialogShowing) {
       _checkLocationAndDismissDialog();
     }
   }
-  
+
   Future<void> _checkLocationAndDismissDialog() async {
     final vm = context.read<DashboardViewModel>();
-    
+
     // Re-check location status
     await vm.checkLocationStatus();
-    
+
     if (!vm.needsLocationPrompt && mounted) {
       // Location is now enabled! Close the dialog and get location
       _isDialogShowing = false;
@@ -62,36 +61,37 @@ class _DashboardViewState extends State<DashboardView>
     super.initState();
     // Register as lifecycle observer
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Auto-run the first-time flow: request permission and fetch location → show city
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final vm = context.read<DashboardViewModel>();
       await vm.initialize(LocationService());
-      
+
       // After initialization, check if we need to show location prompt
       if (mounted && vm.needsLocationPrompt) {
         _showLocationDialog();
       }
     });
   }
-  
+
   void _showLocationDialog() async {
     final vm = context.read<DashboardViewModel>();
     _isDialogShowing = true;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false, // User must respond
       builder: (BuildContext dialogContext) => WillPopScope(
         onWillPop: () async => false, // Prevent back button dismiss
         child: AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
               Icon(
-                vm.isLocationServiceEnabled 
-                  ? Icons.location_off 
-                  : Icons.gps_off,
+                vm.isLocationServiceEnabled
+                    ? Icons.location_off
+                    : Icons.gps_off,
                 color: Colors.orange.shade700,
                 size: 28,
               ),
@@ -124,9 +124,9 @@ class _DashboardViewState extends State<DashboardView>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      !vm.isLocationServiceEnabled 
-                        ? '📍 Steps to enable:' 
-                        : '📍 You will see options:',
+                      !vm.isLocationServiceEnabled
+                          ? '📍 Steps to enable:'
+                          : '📍 You will see options:',
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
@@ -163,10 +163,10 @@ class _DashboardViewState extends State<DashboardView>
                   // Request location permission
                   Navigator.pop(dialogContext);
                   _isDialogShowing = false;
-                  
+
                   final locationService = LocationService();
                   final granted = await locationService.requestPermission();
-                  
+
                   if (granted && mounted) {
                     // Permission granted, get location
                     await vm.refreshWithCurrentLocation(locationService);
@@ -181,15 +181,14 @@ class _DashboardViewState extends State<DashboardView>
                 }
               },
               icon: const Icon(Icons.check_circle),
-              label: Text(
-                !vm.isLocationServiceEnabled 
-                  ? 'Enable Location' 
-                  : 'Grant Permission'
-              ),
+              label: Text(!vm.isLocationServiceEnabled
+                  ? 'Enable Location'
+                  : 'Grant Permission'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF4CAF50),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
             ),
           ],
