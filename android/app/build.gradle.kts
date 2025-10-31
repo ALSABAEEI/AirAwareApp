@@ -49,11 +49,8 @@ flutter {
 
 dependencies {
     // ✅ Huawei Mobile Services (HMS) dependencies
-    // Location Kit for GPS/location services
-    implementation("com.huawei.hms:location:6.11.0.300") {
-        // Exclude problematic transitive dependency
-        exclude(group = "com.huawei.hms", module = "ucs-credential-developers")
-    }
+    // Use older version that doesn't require UCS credential
+    implementation("com.huawei.hms:location:6.9.0.300")
     implementation("com.huawei.agconnect:agconnect-core:1.9.1.301")
     
     // HMS Core SDK for device capability detection

@@ -8,6 +8,8 @@ import '../../widgets/header.dart';
 import '../../widgets/recommend_card.dart';
 import '../../widgets/activity_card.dart';
 import '../../screens/weather_test_screen.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
@@ -33,9 +35,144 @@ class _DashboardViewState extends State<DashboardView>
   void initState() {
     super.initState();
     // Auto-run the first-time flow: request permission and fetch location → show city
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardViewModel>().initialize(LocationService());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final vm = context.read<DashboardViewModel>();
+      await vm.initialize(LocationService());
+      
+      // After initialization, check if we need to show location prompt
+      if (mounted && vm.needsLocationPrompt) {
+        _showLocationDialog();
+      }
     });
+  }
+  
+  void _showLocationDialog() async {
+    final vm = context.read<DashboardViewModel>();
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User must respond
+      builder: (BuildContext dialogContext) => WillPopScope(
+        onWillPop: () async => false, // Prevent back button dismiss
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Icon(
+                vm.isLocationServiceEnabled 
+                  ? Icons.location_off 
+                  : Icons.gps_off,
+                color: Colors.orange.shade700,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              const Text('Location Required'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!vm.isLocationServiceEnabled)
+                const Text(
+                  'Location services are turned off. Please enable location/GPS to use AirAware and get accurate air quality data for your area.',
+                  style: TextStyle(fontSize: 15),
+                )
+              else
+                const Text(
+                  'Location permission is required to detect your current location and provide accurate air quality information.',
+                  style: TextStyle(fontSize: 15),
+                ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      !vm.isLocationServiceEnabled 
+                        ? '📍 Steps to enable:' 
+                        : '📍 You will see options:',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    if (!vm.isLocationServiceEnabled) ...[
+                      const Text('1. Tap "Enable Location" below'),
+                      const Text('2. Turn ON location/GPS'),
+                      const Text('3. Return to the app'),
+                    ] else ...[
+                      const Text('• Allow only this time'),
+                      const Text('• Allow while using the app (Recommended)'),
+                      const Text('• Don\'t allow'),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                vm.clearLocationPrompt();
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Maybe Later'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                
+                if (!vm.isLocationServiceEnabled) {
+                  // Open location settings
+                  await Geolocator.openLocationSettings();
+                  // Wait a bit for user to enable location
+                  await Future.delayed(const Duration(seconds: 1));
+                  // Re-check status
+                  if (mounted) {
+                    await vm.checkLocationStatus();
+                    // If still disabled, show dialog again
+                    if (vm.needsLocationPrompt && mounted) {
+                      _showLocationDialog();
+                    } else if (!vm.needsLocationPrompt && mounted) {
+                      // Location enabled, now get it
+                      await vm.refreshWithCurrentLocation(LocationService());
+                    }
+                  }
+                } else {
+                  // Request location permission
+                  final locationService = LocationService();
+                  final granted = await locationService.requestPermission();
+                  
+                  if (granted && mounted) {
+                    // Permission granted, get location
+                    await vm.refreshWithCurrentLocation(locationService);
+                    vm.clearLocationPrompt();
+                  } else if (mounted) {
+                    // Permission denied, check again
+                    await vm.checkLocationStatus();
+                  }
+                }
+              },
+              icon: const Icon(Icons.check_circle),
+              label: Text(
+                !vm.isLocationServiceEnabled 
+                  ? 'Enable Location' 
+                  : 'Grant Permission'
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4CAF50),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   List<Color> _baseGradientForLevel(int level) {
