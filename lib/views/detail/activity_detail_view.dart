@@ -70,104 +70,126 @@ class _ActivityDetailViewState extends State<ActivityDetailView>
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              base.withOpacity(0.55),
-              base.withOpacity(0.25),
-            ],
+      body: Stack(
+        children: [
+          // Background gradient
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    base.withOpacity(0.45),
+                    base.withOpacity(0.20),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 6),
+          // Dark overlay for contrast (does NOT affect foreground widgets)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.25),
+                    Colors.black.withOpacity(0.35),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    radius: 42,
+                    backgroundColor: Colors.white.withOpacity(0.95),
+                    child: Icon(
+                      widget.activityIcon,
+                      color: widget.iconBackground,
+                      size: 42,
                     ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  radius: 42,
-                  backgroundColor: Colors.white.withOpacity(0.95),
-                  child: Icon(
-                    widget.activityIcon,
-                    color: widget.iconBackground,
-                    size: 42,
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
+                const SizedBox(height: 20),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelColor: widget.iconBackground,
-                  unselectedLabelColor: Colors.white,
-                  labelStyle: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+                  child: TabBar(
+                    controller: _tabController,
+                    indicator: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: widget.iconBackground,
+                    unselectedLabelColor: Colors.white,
+                    labelStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    tabs: const [
+                      Tab(text: 'Today'),
+                      Tab(text: 'Tomorrow'),
+                    ],
                   ),
-                  tabs: const [
-                    Tab(text: 'Today'),
-                    Tab(text: 'Tomorrow'),
-                  ],
                 ),
-              ),
-              Expanded(
-                child: Consumer<ActivityHourlyViewModel>(
-                  builder: (context, vm, _) {
-                    if (vm.loading) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
+                Expanded(
+                  child: Consumer<ActivityHourlyViewModel>(
+                    builder: (context, vm, _) {
+                      if (vm.loading) {
+                        return const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        );
+                      }
+                      if (vm.error != null) {
+                        return Center(
+                          child: Text(
+                            vm.error!,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        );
+                      }
+                      return TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _ForecastList(
+                            activity: widget.activityTitle,
+                            items: vm.today,
+                          ),
+                          _ForecastList(
+                            activity: widget.activityTitle,
+                            items: vm.tomorrow,
+                          ),
+                        ],
                       );
-                    }
-                    if (vm.error != null) {
-                      return Center(
-                        child: Text(
-                          vm.error!,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      );
-                    }
-                    return TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _ForecastList(
-                          activity: widget.activityTitle,
-                          items: vm.today,
-                        ),
-                        _ForecastList(
-                          activity: widget.activityTitle,
-                          items: vm.tomorrow,
-                        ),
-                      ],
-                    );
-                  },
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

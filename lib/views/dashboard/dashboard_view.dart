@@ -351,11 +351,11 @@ class _Grid extends StatelessWidget {
         ActivityCard(
           icon: Icons.pedal_bike_rounded,
           iconBackground: const Color(0xFFFF7F50), // Coral
-          title: 'Bike',
-          percent: nowPercent('Bike') ?? nowPercent('Cycling'),
+          title: 'Cycling',
+          percent: nowPercent('Cycling'),
           onTap: () => _navigateToDetail(
             context,
-            'Bike',
+            'Cycling',
             Icons.pedal_bike_rounded,
             const Color(0xFFFF7F50),
           ),

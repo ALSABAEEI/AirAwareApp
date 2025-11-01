@@ -83,7 +83,7 @@ class _WeatherViewState extends State<WeatherView> {
                   ? Text('Error: $error',
                       style: const TextStyle(color: Colors.red))
                   : ListView(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 44),
                       children: [
                         _GlassCard(
                           child: Column(
@@ -258,7 +258,7 @@ class _WeatherViewState extends State<WeatherView> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
                         FilledButton.icon(
                           onPressed: _getWeather,
                           icon: const Icon(Icons.refresh_rounded),
@@ -270,6 +270,7 @@ class _WeatherViewState extends State<WeatherView> {
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                           textAlign: TextAlign.center,
                         ),
+                        const SizedBox(height: 24),
                       ],
                     ),
         ),
